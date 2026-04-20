@@ -1,0 +1,7 @@
+- id: validate-dates
+  name: Validate Japanese date+weekday consistency
+  description: 日本語テキスト中の「日付+曜日」の整合性を検証し、誤りがあれば commit を止める
+  entry: validate_dates.py
+  language: script
+  files: \.(md|html|txt|csv|json)$
+  pass_filenames: true

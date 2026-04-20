@@ -1,0 +1,39 @@
+name: Validate dates
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Clone validator
+        run: |
+          git clone --depth 1 https://github.com/FP-sudo/date-weekday-validator.git /tmp/validator
+      - name: Find changed files
+        id: files
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE="origin/${{ github.base_ref }}"
+          else
+            BASE="HEAD^"
+          fi
+          FILES=$(git diff --name-only --diff-filter=ACMR "${BASE}..HEAD" \
+            | grep -E '\.(md|html|txt|csv|json)$' || true)
+          {
+            echo "list<<FILES_EOF"
+            echo "${FILES}"
+            echo "FILES_EOF"
+          } >> "$GITHUB_OUTPUT"
+      - name: Run validator
+        if: steps.files.outputs.list != ''
+        run: |
+          echo "${{ steps.files.outputs.list }}" | xargs python3 /tmp/validator/validate_dates.py
