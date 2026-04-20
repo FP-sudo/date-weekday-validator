@@ -1,0 +1,27 @@
+# このファイルを .github/workflows/ci.yml として配置すると
+# Python 3.8 / 3.10 / 3.12 の3系統で自動テストされます。
+#
+# push するには GitHub トークンに workflow scope が必要:
+#   gh auth refresh -s workflow
+name: Self-test
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.8', '3.10', '3.12']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Syntax check
+        run: python3 -m py_compile validate_dates.py
+      - name: Run built-in test suite
+        run: bash tests/run.sh
